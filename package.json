@@ -1,0 +1,16 @@
+{
+  "name": "coveo",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "npx http-server ."
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@coveo/atomic": "^3.59.3"
+  }
+}
