@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Pokemon Detail</title>
+
+  <script type="module" src="https://static.cloud.coveo.com/atomic/v3/atomic.esm.js"></script>
+  <link rel="stylesheet" href="https://static.cloud.coveo.com/atomic/v3/themes/coveo.css" />
+
+  <style>
+body {
+  margin: 0;
+  background: #777;
+  font-family: Arial, sans-serif;
+}
+
+.pokemon-header {
+  background: #222;
+  color: #29b6ff;
+  text-align: center;
+  padding: 25px;
+  font-size: 42px;
+  font-weight: bold;
+}
+
+.pokemon-nav {
+  background: #333;
+  color: white;
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  padding: 12px;
+}
+
+.pokemon-detail {
+  max-width: 1100px;
+  margin: 30px auto;
+  background: white;
+  padding: 30px;
+  border-radius: 6px;
+}
+
+.pokemon-detail h1 {
+  text-align: center;
+  font-size: 48px;
+}
+
+.tabs {
+  background: #e8f4ff;
+  padding: 14px;
+  display: flex;
+  gap: 25px;
+  margin-bottom: 30px;
+  color: #1a73e8;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: 350px 1fr;
+  gap: 50px;
+}
+
+.pokemon-art {
+  width: 320px;
+  max-width: 100%;
+}
+
+.detail-grid h2 {
+  font-size: 36px;
+  margin-top: 0;
+}
+  </style>
+</head>
+
+<body>
+
+  <a href="index.html">← Back to search</a>
+
+  <header class="pokemon-header">
+  Pokémon Database
+</header>
+
+<nav class="pokemon-nav">
+  <span>Pokémon Data</span>
+  <span>Game Mechanics</span>
+  <span>Pokémon Games</span>
+  <span>Community</span>
+</nav>
+
+<div class="pokemon-detail">
+
+  <a href="index.html">← Back to search</a>
+
+  <h1 id="title">Loading...</h1>
+
+  <div class="tabs">
+    <span>Info</span>
+    <span>Base Stats</span>
+    <span>Evolution</span>
+    <span>Moves</span>
+    <span>Locations</span>
+  </div>
+
+  <div class="detail-grid">
+
+    <div>
+      <img id="image" class="pokemon-art">
+    </div>
+
+    <div>
+
+      <h2>Pokédex Data</h2>
+
+      <p>
+        <strong>Type:</strong>
+        <span id="type"></span>
+      </p>
+
+      <p>
+        <strong>Generation:</strong>
+        <span id="generation"></span>
+      </p>
+
+      <p id="excerpt"></p>
+
+      <p>
+        <a id="originalLink" target="_blank">
+          Open on PokémonDB
+        </a>
+      </p>
+
+    </div>
+
+  </div>
+
+</div>
+
+  <script>
+    const ORG_ID = 'pu7ptzbbyf643n7sjsyrckfkpga';
+    const TOKEN = 'xxa44ec475-63b7-401c-83ef-aad3cee9382d';
+
+    const params = new URLSearchParams(window.location.search);
+
+    const uri = params.get('uri');
+	console.log("URI parameter:", uri);
+    async function loadPokemon() {
+     if (!uri) {
+		document.getElementById('title').textContent =
+			(result.title || 'Unknown Pokémon').split(' Pokédex')[0];
+		return;
+	}
+    console.log("Searching for:", uri);
+      const response = await fetch(
+        `https://${ORG_ID}.org.coveo.com/rest/search/v2?organizationId=${ORG_ID}`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${TOKEN}`,
+            'Content-Type': 'application/json'
+          },
+body: JSON.stringify({
+  q: '',
+  aq: `@clickableuri=="${uri}"`,
+  numberOfResults: 1,
+  fieldsToInclude: [
+    'pokemon_type',
+    'pokemon_generation',
+    'pokemon_image'
+  ]
+})
+        }
+      );
+
+      const data = await response.json();
+	  console.log(data);
+      const result = data.results?.[0];
+
+      if (!result) {
+        document.getElementById('title').textContent = 'Pokémon not found';
+        return;
+      }
+
+      document.getElementById('title').textContent =
+		(result.title || 'Unknown Pokémon').split(' Pokédex')[0];
+      document.getElementById('type').textContent = result.raw.pokemon_type || '';
+      document.getElementById('generation').textContent = result.raw.pokemon_generation || '';
+      document.getElementById('excerpt').textContent = result.excerpt || '';
+
+      if (result.raw.pokemon_image) {
+        document.getElementById('image').src = result.raw.pokemon_image;
+      }
+
+      document.getElementById('originalLink').href = result.clickUri;
+    }
+
+    loadPokemon();
+  </script>
+
+</body>
+</html>

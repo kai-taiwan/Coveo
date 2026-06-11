@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+
+  <script type="module" src="https://static.cloud.coveo.com/atomic/v3/atomic.esm.js"></script>
+  <link rel="stylesheet" href="https://static.cloud.coveo.com/atomic/v3/themes/coveo.css" />
+
+  <style>
+    body {
+      margin: 0;
+      background: #777;
+      font-family: Arial, sans-serif;
+    }
+
+    .pokemon-header {
+      background: #222;
+      color: #29b6ff;
+      text-align: center;
+      padding: 25px;
+      font-size: 42px;
+      font-weight: bold;
+    }
+
+    .pokemon-nav {
+      background: #333;
+      color: white;
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      padding: 12px;
+    }
+
+    atomic-search-interface {
+      display: block;
+      max-width: 1400px;
+      margin: 20px auto;
+      background: white;
+      padding: 20px;
+      border-radius: 6px;
+    }
+
+    .detail-link {
+      display: inline-block;
+      margin-top: 10px;
+      color: #1a73e8;
+      font-weight: bold;
+      text-decoration: none;
+    }
+
+    .detail-link:hover {
+      text-decoration: underline;
+    }
+
+    .hidden-uri {
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+   <div class="pokemon-header">
+    Pokémon Database
+  </div>
+
+  <div class="pokemon-nav">
+    <span>Pokémon Data</span>
+    <span>Game Mechanics</span>
+    <span>Pokémon Games</span>
+    <span>Community</span>
+  </div> 
+  
+  <atomic-generated-answer></atomic-generated-answer>
+  <atomic-search-interface
+  id="search"
+  fields-to-include='["pokemon_type","pokemon_generation","pokemon_image","filename","clickableuri"]'>
+    <atomic-search-layout>
+      <atomic-layout-section section="search">
+        <atomic-search-box></atomic-search-box>
+      </atomic-layout-section>
+	  <atomic-layout-section section="facets">
+        <atomic-facet
+          field="pokemon_type"
+          label="Pokémon Type">
+        </atomic-facet>
+
+        <atomic-facet
+          field="pokemon_generation"
+          label="Generation">
+        </atomic-facet>
+      </atomic-layout-section>
+	  
+        <atomic-layout-section section="main">
+          <atomic-did-you-mean></atomic-did-you-mean>
+          <atomic-query-summary></atomic-query-summary>
+          <atomic-no-results></atomic-no-results>
+		  <atomic-generated-answer></atomic-generated-answer>
+		  <atomic-result-list image-size="large">
+			<atomic-result-template>
+			  <template>
+				<atomic-result-section-visual>
+					<atomic-result-image field="pokemon_image"></atomic-result-image>
+				</atomic-result-section-visual>
+
+				<atomic-result-section-title>
+				  <atomic-result-link></atomic-result-link>
+				</atomic-result-section-title>
+				<atomic-result-section-metadata>
+  <atomic-result-text field="pokemon_type"></atomic-result-text>
+  <atomic-result-text field="pokemon_generation"></atomic-result-text>
+
+  <br>
+
+  <a class="detail-link" href="#">View detail page</a>
+    <span class="hidden-uri">
+      <atomic-result-text field="clickableuri"></atomic-result-text>
+    </span>
+</atomic-result-section-metadata>
+  </a>
+</atomic-result-section-title>
+
+				<atomic-result-section-metadata>
+					<atomic-result-text field="pokemon_type"></atomic-result-text>
+					<atomic-result-text field="pokemon_generation"></atomic-result-text>
+				</atomic-result-section-metadata>
+			  </template>
+			</atomic-result-template>
+		  </atomic-result-list>
+        <atomic-pager></atomic-pager>
+      </atomic-layout-section>
+    </atomic-search-layout>
+  </atomic-search-interface>
+
+  <script>
+(async () => {
+  await customElements.whenDefined('atomic-search-interface');
+
+  const searchInterface = document.querySelector('#search');
+
+  await searchInterface.initialize({
+    accessToken: 'xxa44ec475-63b7-401c-83ef-aad3cee9382d',
+    organizationId: 'pu7ptzbbyf643n7sjsyrckfkpga',
+    search: {
+      fieldsToInclude: [
+        'pokemon_type',
+        'pokemon_generation',
+        'pokemon_image'
+      ]
+    }
+  });
+
+  searchInterface.executeFirstSearch();
+  function findAllDeep(selector, root = document) {
+  const results = [];
+
+  root.querySelectorAll(selector).forEach((el) => {
+    results.push(el);
+  });
+
+  root.querySelectorAll('*').forEach((el) => {
+    if (el.shadowRoot) {
+      results.push(...findAllDeep(selector, el.shadowRoot));
+    }
+  });
+
+  return results;
+}
+
+function updateDetailLinks() {
+  const links = findAllDeep('.detail-link');
+
+  links.forEach((link) => {
+    const root = link.getRootNode();
+    const uriElement = root.querySelector('.hidden-uri atomic-result-text');
+
+    if (!uriElement) {
+      return;
+    }
+
+    const uri = uriElement.textContent.trim();
+
+    if (!uri || uri.includes('{{')) {
+      return;
+    }
+
+    link.href = `onepage.html?uri=${encodeURIComponent(uri)}`;
+  });
+}
+
+setInterval(updateDetailLinks, 500);
+  // -------------------------
+  // ADD THIS ENTIRE BLOCK
+  // -------------------------
+
+  function updateDetailLinks() {
+    document.querySelectorAll('atomic-result').forEach((resultElement) => {
+      const link = resultElement.querySelector('.detail-link');
+      const titleElement = resultElement.querySelector('atomic-result-link');
+
+      if (!link || !titleElement) {
+        return;
+      }
+
+      const title = titleElement.textContent || '';
+
+      const pokemonName = title
+        .split(' Pokédex')[0]
+        .trim()
+        .toLowerCase()
+        .replaceAll(' ', '-');
+
+      if (!pokemonName) {
+        return;
+      }
+
+      link.href = `onepage.html?uri=${encodeURIComponent(
+        `https://pokemondb.net/pokedex/${pokemonName}`
+      )}`;
+    });
+  }
+
+  setInterval(updateDetailLinks, 500);
+
+})();
+</script>
+</body>
+</html>
